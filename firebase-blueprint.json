@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "preferences": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of genre IDs the user likes"
+        }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Genre": {
+      "title": "Genre",
+      "description": "A music genre",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Song": {
+      "title": "Song",
+      "description": "A song in the catalog",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "artist": { "type": "string" },
+        "duration": { "type": "string", "description": "Duration in mm:ss format" },
+        "releaseDate": { "type": "string", "format": "date" },
+        "genreId": { "type": "string" },
+        "album": { "type": "string" },
+        "musicUrl": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["name", "artist", "duration", "releaseDate", "genreId", "album", "musicUrl"]
+    },
+    "Playlist": {
+      "title": "Playlist",
+      "description": "A user's playlist",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "userId": { "type": "string" },
+        "songIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["name", "userId", "songIds"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/genres/{genreId}": {
+      "schema": { "$ref": "#/entities/Genre" },
+      "description": "Music genres"
+    },
+    "/songs/{songId}": {
+      "schema": { "$ref": "#/entities/Song" },
+      "description": "Songs catalog"
+    },
+    "/playlists/{playlistId}": {
+      "schema": { "$ref": "#/entities/Playlist" },
+      "description": "User playlists"
+    }
+  }
+}

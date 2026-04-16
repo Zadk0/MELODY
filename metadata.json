@@ -1,0 +1,6 @@
+{
+  "name": "Spotify Clone",
+  "description": "A Spotify-like music streaming application with AI recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
