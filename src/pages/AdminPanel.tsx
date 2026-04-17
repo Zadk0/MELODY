@@ -3,7 +3,7 @@ import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Trash2, Upload } from 'lucide-react';
+import { Trash2, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function AdminPanel() {
   const { profile } = useAuth();
@@ -20,11 +20,17 @@ export default function AdminPanel() {
   const [songImageFile, setSongImageFile] = useState<File | null>(null);
 
   const [isUploading, setIsUploading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{type: 'error' | 'success', text: string} | null>(null);
 
   // Refs para limpiar los inputs de archivo después de subir
   const genreImageInputRef = useRef<HTMLInputElement>(null);
   const songFileInputRef = useRef<HTMLInputElement>(null);
   const songImageInputRef = useRef<HTMLInputElement>(null);
+
+  const showStatus = (type: 'error' | 'success', text: string) => {
+    setStatusMessage({ type, text });
+    setTimeout(() => setStatusMessage(null), 6000);
+  };
 
   const fetchData = async () => {
     const gSnap = await getDocs(collection(db, 'genres'));
@@ -53,6 +59,7 @@ export default function AdminPanel() {
     e.preventDefault();
     if (!newGenre.name) return;
     setIsUploading(true);
+    setStatusMessage(null);
     try {
       let imageUrl = '';
       if (genreImageFile) {
@@ -64,10 +71,11 @@ export default function AdminPanel() {
       setGenreImageFile(null);
       if (genreImageInputRef.current) genreImageInputRef.current.value = '';
       
+      showStatus('success', 'Género agregado correctamente.');
       fetchData();
     } catch (error) {
       console.error(error);
-      alert('Error al agregar género. Revisa los permisos de Firebase Storage.');
+      showStatus('error', 'Error al agregar género. Revisa los permisos de Firebase Storage.');
     }
     setIsUploading(false);
   };
@@ -75,10 +83,11 @@ export default function AdminPanel() {
   const handleAddSong = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!songFile) {
-      alert('Debes seleccionar un archivo de música (MP3)');
+      showStatus('error', 'Debes seleccionar un archivo de música (MP3)');
       return;
     }
     setIsUploading(true);
+    setStatusMessage(null);
     try {
       const musicUrl = await uploadFile(songFile, 'songs');
       let imageUrl = '';
@@ -86,7 +95,10 @@ export default function AdminPanel() {
         imageUrl = await uploadFile(songImageFile, 'covers');
       }
 
-      await addDoc(collection(db, 'songs'), { ...newSong, musicUrl, imageUrl });
+      const songData: any = { ...newSong, musicUrl };
+      if (imageUrl) songData.imageUrl = imageUrl;
+
+      await addDoc(collection(db, 'songs'), songData);
       
       setNewSong({ name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '' });
       setSongFile(null);
@@ -94,24 +106,41 @@ export default function AdminPanel() {
       if (songFileInputRef.current) songFileInputRef.current.value = '';
       if (songImageInputRef.current) songImageInputRef.current.value = '';
       
+      showStatus('success', 'Canción agregada correctamente.');
       fetchData();
     } catch (error) {
       console.error(error);
-      alert('Error al agregar canción. Revisa los permisos de Firebase Storage.');
+      showStatus('error', 'Error al agregar canción. Verifica que guardaste las reglas en Firebase Storage.');
     }
     setIsUploading(false);
   };
 
   const handleDelete = async (collectionName: string, id: string) => {
-    if (confirm('¿Estás seguro? Se borrará el documento (los archivos en Storage deben borrarse manualmente por ahora).')) {
+    try {
       await deleteDoc(doc(db, collectionName, id));
+      showStatus('success', 'Eliminado correctamente (Recuerda borrar el archivo de Storage manual).');
       fetchData();
+    } catch (error) {
+      console.error(error);
+      showStatus('error', 'Error al eliminar el documento.');
     }
   };
 
   return (
     <div className="pb-12 flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-bento-text">Panel de Administrador</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-bold text-bento-text">Panel de Administrador</h1>
+        
+        {statusMessage && (
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold ${
+            statusMessage.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
+            : 'bg-green-500/10 text-green-500 border border-green-500/20'
+          }`}>
+            {statusMessage.type === 'error' ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+            {statusMessage.text}
+          </div>
+        )}
+      </div>
       
       <div className="grid md:grid-cols-2 gap-6">
         <section className="bg-bento-panel rounded-xl border border-bento-border overflow-hidden flex flex-col">
@@ -129,7 +158,7 @@ export default function AdminPanel() {
                   accept="image/*"
                   ref={genreImageInputRef}
                   onChange={(e) => setGenreImageFile(e.target.files?.[0] || null)}
-                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:bg-green-400"
+                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:opacity-80 transition-opacity"
                   disabled={isUploading}
                 />
               </div>
@@ -177,7 +206,7 @@ export default function AdminPanel() {
                 <input required placeholder="Álbum" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.album} onChange={e => setNewSong({...newSong, album: e.target.value})} disabled={isUploading} />
               </div>
 
-              <div className="p-3 border border-dashed border-bento-accent/50 rounded-lg bg-bento-accent/5 flex flex-col gap-2">
+              <div className="p-3 border border-dashed border-bento-accent/50 rounded-lg bg-bento-accent/5 flex flex-col gap-2 relative">
                 <label className="text-xs font-bold text-bento-accent">Archivo MP3 (Requerido):</label>
                 <input 
                   required
@@ -185,7 +214,7 @@ export default function AdminPanel() {
                   accept="audio/*"
                   ref={songFileInputRef}
                   onChange={(e) => setSongFile(e.target.files?.[0] || null)}
-                  className="text-bento-dim text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:bg-green-400"
+                  className="text-bento-dim text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:opacity-80 transition-opacity"
                   disabled={isUploading}
                 />
               </div>
@@ -197,7 +226,7 @@ export default function AdminPanel() {
                   accept="image/*"
                   ref={songImageInputRef}
                   onChange={(e) => setSongImageFile(e.target.files?.[0] || null)}
-                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-text file:text-bento-bg hover:file:opacity-80"
+                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-text file:text-bento-bg hover:file:opacity-80 transition-opacity"
                   disabled={isUploading}
                 />
               </div>
