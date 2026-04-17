@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User as UserIcon, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,10 +26,20 @@ export default function Topbar() {
       <div className="flex items-center gap-4">
         {user ? (
           <div className="flex items-center gap-4">
+            {profile?.role === 'admin' && (
+              <button 
+                onClick={() => navigate('/admin')}
+                className="flex items-center gap-2 bg-bento-accent/10 text-bento-accent hover:bg-bento-accent/20 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Panel Admin
+              </button>
+            )}
             <span className="text-sm font-semibold hidden sm:block text-bento-text">{profile?.displayName}</span>
             <button 
               onClick={logout}
               className="bg-bento-panel border border-bento-border p-2 rounded-full hover:bg-bento-hover transition-colors text-bento-text"
+              title="Cerrar sesión"
             >
               <UserIcon className="w-5 h-5" />
             </button>

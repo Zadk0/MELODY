@@ -39,14 +39,6 @@ export default function Sidebar() {
             </NavLink>
           </>
         )}
-
-        {profile?.role === 'admin' && (
-          <div className="mt-auto pt-4 border-t border-bento-border">
-            <NavLink to="/admin" className={({isActive}) => `px-3 py-2.5 rounded-md text-sm flex items-center gap-3 cursor-pointer transition-colors ${isActive ? 'text-bento-accent bg-bento-hover' : 'text-bento-text hover:bg-bento-hover'}`}>
-              Admin Panel
-            </NavLink>
-          </div>
-        )}
       </nav>
     </div>
   );
