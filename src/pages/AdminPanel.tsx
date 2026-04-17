@@ -1,18 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Upload } from 'lucide-react';
 
 export default function AdminPanel() {
   const { profile } = useAuth();
   const [genres, setGenres] = useState<any[]>([]);
   const [songs, setSongs] = useState<any[]>([]);
   
-  const [newGenre, setNewGenre] = useState({ name: '', imageUrl: '' });
+  const [newGenre, setNewGenre] = useState({ name: '' });
+  const [genreImageFile, setGenreImageFile] = useState<File | null>(null);
+
   const [newSong, setNewSong] = useState({
-    name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '', musicUrl: '', imageUrl: ''
+    name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: ''
   });
+  const [songFile, setSongFile] = useState<File | null>(null);
+  const [songImageFile, setSongImageFile] = useState<File | null>(null);
+
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Refs para limpiar los inputs de archivo después de subir
+  const genreImageInputRef = useRef<HTMLInputElement>(null);
+  const songFileInputRef = useRef<HTMLInputElement>(null);
+  const songImageInputRef = useRef<HTMLInputElement>(null);
 
   const fetchData = async () => {
     const gSnap = await getDocs(collection(db, 'genres'));
@@ -31,32 +43,67 @@ export default function AdminPanel() {
     return <div className="p-8 text-center text-bento-dim text-sm">Acceso denegado. Solo administradores.</div>;
   }
 
+  const uploadFile = async (file: File, folder: string) => {
+    const fileRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+  };
+
   const handleAddGenre = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newGenre.name) return;
+    setIsUploading(true);
     try {
-      await addDoc(collection(db, 'genres'), newGenre);
-      setNewGenre({ name: '', imageUrl: '' });
+      let imageUrl = '';
+      if (genreImageFile) {
+        imageUrl = await uploadFile(genreImageFile, 'genres');
+      }
+      await addDoc(collection(db, 'genres'), { name: newGenre.name, imageUrl });
+      
+      setNewGenre({ name: '' });
+      setGenreImageFile(null);
+      if (genreImageInputRef.current) genreImageInputRef.current.value = '';
+      
       fetchData();
     } catch (error) {
       console.error(error);
-      alert('Error al agregar género');
+      alert('Error al agregar género. Revisa los permisos de Firebase Storage.');
     }
+    setIsUploading(false);
   };
 
   const handleAddSong = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!songFile) {
+      alert('Debes seleccionar un archivo de música (MP3)');
+      return;
+    }
+    setIsUploading(true);
     try {
-      await addDoc(collection(db, 'songs'), newSong);
-      setNewSong({ name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '', musicUrl: '', imageUrl: '' });
+      const musicUrl = await uploadFile(songFile, 'songs');
+      let imageUrl = '';
+      if (songImageFile) {
+        imageUrl = await uploadFile(songImageFile, 'covers');
+      }
+
+      await addDoc(collection(db, 'songs'), { ...newSong, musicUrl, imageUrl });
+      
+      setNewSong({ name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '' });
+      setSongFile(null);
+      setSongImageFile(null);
+      if (songFileInputRef.current) songFileInputRef.current.value = '';
+      if (songImageInputRef.current) songImageInputRef.current.value = '';
+      
       fetchData();
     } catch (error) {
       console.error(error);
-      alert('Error al agregar canción');
+      alert('Error al agregar canción. Revisa los permisos de Firebase Storage.');
     }
+    setIsUploading(false);
   };
 
   const handleDelete = async (collectionName: string, id: string) => {
-    if (confirm('¿Estás seguro?')) {
+    if (confirm('¿Estás seguro? Se borrará el documento (los archivos en Storage deben borrarse manualmente por ahora).')) {
       await deleteDoc(doc(db, collectionName, id));
       fetchData();
     }
@@ -73,9 +120,23 @@ export default function AdminPanel() {
           </div>
           <div className="p-6 flex flex-col gap-6 flex-1">
             <form onSubmit={handleAddGenre} className="flex flex-col gap-4">
-              <input required placeholder="Nombre del género" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newGenre.name} onChange={e => setNewGenre({...newGenre, name: e.target.value})} />
-              <input placeholder="URL de imagen (opcional)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newGenre.imageUrl} onChange={e => setNewGenre({...newGenre, imageUrl: e.target.value})} />
-              <button type="submit" className="bg-bento-accent text-bento-bg font-semibold text-sm px-4 py-2 rounded-md hover:scale-[1.02] transition-transform">Agregar Género</button>
+              <input required placeholder="Nombre del género" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newGenre.name} onChange={e => setNewGenre({...newGenre, name: e.target.value})} disabled={isUploading} />
+              
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-bento-dim">Imagen del Género (Opcional):</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  ref={genreImageInputRef}
+                  onChange={(e) => setGenreImageFile(e.target.files?.[0] || null)}
+                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:bg-green-400"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <button type="submit" disabled={isUploading} className="flex items-center justify-center gap-2 bg-bento-accent text-bento-bg font-semibold text-sm px-4 py-2 rounded-md hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 mt-2">
+                {isUploading ? 'Subiendo...' : <><Upload className="w-4 h-4" /> Agregar Género</>}
+              </button>
             </form>
 
             <div className="mt-auto pt-6 border-t border-bento-border">
@@ -101,23 +162,49 @@ export default function AdminPanel() {
           <div className="p-6 flex flex-col gap-6 flex-1">
             <form onSubmit={handleAddSong} className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
-                <input required placeholder="Nombre" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.name} onChange={e => setNewSong({...newSong, name: e.target.value})} />
-                <input required placeholder="Artista" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.artist} onChange={e => setNewSong({...newSong, artist: e.target.value})} />
+                <input required placeholder="Nombre" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.name} onChange={e => setNewSong({...newSong, name: e.target.value})} disabled={isUploading} />
+                <input required placeholder="Artista" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.artist} onChange={e => setNewSong({...newSong, artist: e.target.value})} disabled={isUploading} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <input required placeholder="Duración (ej. 3:45)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.duration} onChange={e => setNewSong({...newSong, duration: e.target.value})} />
-                <input required type="date" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.releaseDate} onChange={e => setNewSong({...newSong, releaseDate: e.target.value})} />
+                <input required placeholder="Duración (ej. 3:45)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.duration} onChange={e => setNewSong({...newSong, duration: e.target.value})} disabled={isUploading} />
+                <input required type="date" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.releaseDate} onChange={e => setNewSong({...newSong, releaseDate: e.target.value})} disabled={isUploading} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <select required className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.genreId} onChange={e => setNewSong({...newSong, genreId: e.target.value})}>
+                <select required className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.genreId} onChange={e => setNewSong({...newSong, genreId: e.target.value})} disabled={isUploading}>
                   <option value="">Seleccionar Género</option>
                   {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                 </select>
-                <input required placeholder="Álbum" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.album} onChange={e => setNewSong({...newSong, album: e.target.value})} />
+                <input required placeholder="Álbum" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.album} onChange={e => setNewSong({...newSong, album: e.target.value})} disabled={isUploading} />
               </div>
-              <input required placeholder="URL de música (mp3)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.musicUrl} onChange={e => setNewSong({...newSong, musicUrl: e.target.value})} />
-              <input placeholder="URL de imagen (opcional)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.imageUrl} onChange={e => setNewSong({...newSong, imageUrl: e.target.value})} />
-              <button type="submit" className="bg-bento-accent text-bento-bg font-semibold text-sm px-4 py-2 rounded-md hover:scale-[1.02] transition-transform mt-2">Agregar Canción</button>
+
+              <div className="p-3 border border-dashed border-bento-accent/50 rounded-lg bg-bento-accent/5 flex flex-col gap-2">
+                <label className="text-xs font-bold text-bento-accent">Archivo MP3 (Requerido):</label>
+                <input 
+                  required
+                  type="file" 
+                  accept="audio/*"
+                  ref={songFileInputRef}
+                  onChange={(e) => setSongFile(e.target.files?.[0] || null)}
+                  className="text-bento-dim text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:bg-green-400"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-bento-dim">Imagen de Portada (Opcional):</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  ref={songImageInputRef}
+                  onChange={(e) => setSongImageFile(e.target.files?.[0] || null)}
+                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-text file:text-bento-bg hover:file:opacity-80"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <button type="submit" disabled={isUploading} className="flex items-center justify-center gap-2 bg-bento-accent text-bento-bg font-semibold text-sm px-4 py-2 rounded-md hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 mt-2">
+                {isUploading ? 'Subiendo Archivos...' : <><Upload className="w-4 h-4" /> Agregar Canción</>}
+              </button>
             </form>
 
             <div className="mt-auto pt-6 border-t border-bento-border">
