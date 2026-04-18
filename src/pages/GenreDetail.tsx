@@ -71,16 +71,17 @@ export default function GenreDetail() {
       </div>
 
       <div className="bg-bento-panel rounded-xl border border-bento-border overflow-hidden">
-        <div className="grid grid-cols-[16px_1fr_40px] md:grid-cols-[16px_minmax(120px,_1fr)_minmax(120px,_1fr)_minmax(120px,_1fr)] gap-4 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-bento-dim border-b border-bento-border">
+        <div className="grid grid-cols-[16px_1fr_40px] md:grid-cols-[16px_minmax(120px,_1fr)_minmax(120px,_1fr)_minmax(80px,_80px)_minmax(80px,_80px)] gap-4 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-bento-dim border-b border-bento-border">
           <div>#</div>
           <div>Título</div>
           <div className="hidden md:block">Álbum</div>
+          <div className="hidden md:block">Fecha</div>
           <div className="hidden md:block">Duración</div>
         </div>
 
         <div className="flex flex-col">
           {songs.map((song, index) => (
-            <div key={`${song.id}-${index}`} className="grid grid-cols-[16px_1fr_40px] md:grid-cols-[16px_minmax(120px,_1fr)_minmax(120px,_1fr)_minmax(120px,_1fr)] gap-4 px-6 py-3 text-sm text-bento-dim hover:bg-bento-hover border-b border-bento-border/50 last:border-0 group items-center transition-colors">
+            <div key={`${song.id}-${index}`} className="grid grid-cols-[16px_1fr_40px] md:grid-cols-[16px_minmax(120px,_1fr)_minmax(120px,_1fr)_minmax(80px,_80px)_minmax(80px,_80px)] gap-4 px-6 py-3 text-sm text-bento-dim hover:bg-bento-hover border-b border-bento-border/50 last:border-0 group items-center transition-colors">
               <div className="flex items-center">
                 <span className="group-hover:hidden text-[12px]">{index + 1}</span>
                 <button 
@@ -104,6 +105,7 @@ export default function GenreDetail() {
                 </div>
               </div>
               <div className="hidden md:flex items-center truncate text-[13px]">{song.album}</div>
+              <div className="hidden md:flex items-center text-[13px]">{song.releaseDate}</div>
               <div className="hidden md:flex items-center text-[13px]">{song.duration}</div>
             </div>
           ))}

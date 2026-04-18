@@ -57,9 +57,12 @@ export default function PlayerBar() {
             <span className="text-[10px] font-bold text-bento-dim text-center px-1">NO COVER</span>
           </div>
         )}
-        <div className="flex flex-col overflow-hidden">
+        <div className="flex flex-col overflow-hidden leading-tight">
           <strong className="text-sm text-bento-text truncate">{currentSong.name}</strong>
-          <span className="text-[12px] text-bento-dim truncate">{currentSong.artist}</span>
+          <span className="text-[11px] text-bento-dim truncate">{currentSong.artist}</span>
+          <span className="text-[9px] text-bento-dim/80 truncate mt-0.5 max-w-[200px]">
+            {currentSong.album} • {currentSong.releaseDate}
+          </span>
         </div>
       </div>
 

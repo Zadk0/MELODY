@@ -104,6 +104,11 @@ export default function Home() {
               </div>
               <h3 className="font-bold text-[14px] truncate text-bento-text">{song.name}</h3>
               <p className="text-[12px] text-bento-dim truncate">{song.artist}</p>
+              <div className="flex justify-between items-center mt-1 text-[10px] text-bento-dim">
+                <span className="truncate mr-2">{song.album}</span>
+                <span>{song.duration}</span>
+              </div>
+              <div className="text-[10px] text-bento-dim truncate">{song.releaseDate}</div>
             </div>
           ))}
         </div>

@@ -150,6 +150,11 @@ export default function Search() {
                     <div className="flex flex-col overflow-hidden">
                       <h4 className="text-[13px] font-bold text-bento-text truncate">{song.name}</h4>
                       <p className="text-[11px] text-bento-dim truncate">{song.artist}</p>
+                      <div className="flex justify-between items-center mt-1 text-[10px] text-bento-dim">
+                        <span className="truncate mr-2">{song.album}</span>
+                        <span>{song.duration}</span>
+                      </div>
+                      <div className="text-[10px] text-bento-dim truncate">{song.releaseDate}</div>
                     </div>
                   </div>
                 ))}
@@ -184,6 +189,11 @@ export default function Search() {
               </div>
               <h3 className="font-bold text-[14px] truncate text-bento-text">{song.name}</h3>
               <p className="text-[12px] text-bento-dim truncate">{song.artist}</p>
+              <div className="flex justify-between items-center mt-1 text-[10px] text-bento-dim">
+                <span className="truncate mr-2">{song.album}</span>
+                <span>{song.duration}</span>
+              </div>
+              <div className="text-[10px] text-bento-dim truncate">{song.releaseDate}</div>
             </div>
           ))}
           {filteredSongs.length === 0 && (

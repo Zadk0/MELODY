@@ -352,6 +352,13 @@ export default function AdminPanel() {
                     <div className="flex flex-col">
                       <span className="text-[13px] font-bold text-bento-text">{s.name}</span>
                       <span className="text-[11px] text-bento-dim">{s.artist}</span>
+                      <div className="flex gap-2 text-[10px] text-bento-dim mt-0.5">
+                        <span className="truncate max-w-[120px]">{s.album}</span>
+                        <span>•</span>
+                        <span>{s.duration}</span>
+                        <span>•</span>
+                        <span>{s.releaseDate}</span>
+                      </div>
                     </div>
                     <button onClick={() => handleDelete('songs', s.id)} className="text-bento-dim hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 className="w-4 h-4" />
