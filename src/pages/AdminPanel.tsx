@@ -3,18 +3,21 @@ import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Trash2, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Trash2, Upload, AlertCircle, CheckCircle2, Link as LinkIcon, FileUp } from 'lucide-react';
 
 export default function AdminPanel() {
   const { profile } = useAuth();
   const [genres, setGenres] = useState<any[]>([]);
   const [songs, setSongs] = useState<any[]>([]);
   
-  const [newGenre, setNewGenre] = useState({ name: '' });
+  // Toggle para modo de subida (100% funcional sin configurar firebase vs archivos loclaes)
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url');
+
+  const [newGenre, setNewGenre] = useState({ name: '', imageUrl: '' });
   const [genreImageFile, setGenreImageFile] = useState<File | null>(null);
 
   const [newSong, setNewSong] = useState({
-    name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: ''
+    name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '', musicUrl: '', imageUrl: ''
   });
   const [songFile, setSongFile] = useState<File | null>(null);
   const [songImageFile, setSongImageFile] = useState<File | null>(null);
@@ -22,14 +25,13 @@ export default function AdminPanel() {
   const [isUploading, setIsUploading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{type: 'error' | 'success', text: string} | null>(null);
 
-  // Refs para limpiar los inputs de archivo después de subir
   const genreImageInputRef = useRef<HTMLInputElement>(null);
   const songFileInputRef = useRef<HTMLInputElement>(null);
   const songImageInputRef = useRef<HTMLInputElement>(null);
 
   const showStatus = (type: 'error' | 'success', text: string) => {
     setStatusMessage({ type, text });
-    setTimeout(() => setStatusMessage(null), 6000);
+    setTimeout(() => setStatusMessage(null), 8000); // 8 segundos para leer bien
   };
 
   const fetchData = async () => {
@@ -58,16 +60,24 @@ export default function AdminPanel() {
   const handleAddGenre = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGenre.name) return;
+
+    if (uploadMode === 'url' && newGenre.imageUrl.startsWith('data:')) {
+      showStatus('error', '❌ La imagen es un código Base64 (texto muy largo). Haz clic derecho en una foto de internet y elige "Copiar dirección de imagen".');
+      return;
+    }
+
     setIsUploading(true);
     setStatusMessage(null);
     try {
-      let imageUrl = '';
-      if (genreImageFile) {
-        imageUrl = await uploadFile(genreImageFile, 'genres');
-      }
-      await addDoc(collection(db, 'genres'), { name: newGenre.name, imageUrl });
+      let finalImageUrl = newGenre.imageUrl;
       
-      setNewGenre({ name: '' });
+      if (uploadMode === 'file' && genreImageFile) {
+        finalImageUrl = await uploadFile(genreImageFile, 'genres');
+      }
+
+      await addDoc(collection(db, 'genres'), { name: newGenre.name, imageUrl: finalImageUrl });
+      
+      setNewGenre({ name: '', imageUrl: '' });
       setGenreImageFile(null);
       if (genreImageInputRef.current) genreImageInputRef.current.value = '';
       
@@ -75,42 +85,62 @@ export default function AdminPanel() {
       fetchData();
     } catch (error) {
       console.error(error);
-      showStatus('error', 'Error al agregar género. Revisa los permisos de Firebase Storage.');
+      showStatus('error', 'Error al agregar género. Si usas archivos, revisa Firebase Storage.');
     }
     setIsUploading(false);
   };
 
   const handleAddSong = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!songFile) {
-      showStatus('error', 'Debes seleccionar un archivo de música (MP3)');
-      return;
+    
+    // Validaciones estrictas para modo URL (Evitar los errores comunes del usuario)
+    if (uploadMode === 'url') {
+      if (!newSong.musicUrl) {
+         showStatus('error', '❌ Debes incluir el enlace de la canción.');
+         return;
+      }
+      if (newSong.musicUrl.includes('youtube.com') || newSong.musicUrl.includes('youtu.be')) {
+         showStatus('error', '❌ No puedes usar enlaces de YouTube. El reproductor necesita un archivo de audio puro directo (.mp3).');
+         return;
+      }
+      if (newSong.imageUrl && newSong.imageUrl.startsWith('data:image')) {
+         showStatus('error', '❌ La URL de la portada es demasiado larga (código Base64). Copia una URL web normal (http...).');
+         return;
+      }
+    } else {
+      if (!songFile) {
+        showStatus('error', '❌ Debes seleccionar un archivo de música (MP3) de tu PC.');
+        return;
+      }
     }
+
     setIsUploading(true);
     setStatusMessage(null);
     try {
-      const musicUrl = await uploadFile(songFile, 'songs');
-      let imageUrl = '';
-      if (songImageFile) {
-        imageUrl = await uploadFile(songImageFile, 'covers');
+      let finalMusicUrl = newSong.musicUrl;
+      let finalImageUrl = newSong.imageUrl;
+
+      if (uploadMode === 'file') {
+        if (songFile) finalMusicUrl = await uploadFile(songFile, 'songs');
+        if (songImageFile) finalImageUrl = await uploadFile(songImageFile, 'covers');
       }
 
-      const songData: any = { ...newSong, musicUrl };
-      if (imageUrl) songData.imageUrl = imageUrl;
+      const songData: any = { ...newSong, musicUrl: finalMusicUrl };
+      if (finalImageUrl) songData.imageUrl = finalImageUrl;
 
       await addDoc(collection(db, 'songs'), songData);
       
-      setNewSong({ name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '' });
+      setNewSong({ name: '', artist: '', duration: '', releaseDate: '', genreId: '', album: '', musicUrl: '', imageUrl: '' });
       setSongFile(null);
       setSongImageFile(null);
       if (songFileInputRef.current) songFileInputRef.current.value = '';
       if (songImageInputRef.current) songImageInputRef.current.value = '';
       
-      showStatus('success', 'Canción agregada correctamente.');
+      showStatus('success', '✅ Canción agregada correctamente.');
       fetchData();
     } catch (error) {
       console.error(error);
-      showStatus('error', 'Error al agregar canción. Verifica que guardaste las reglas en Firebase Storage.');
+      showStatus('error', 'Error. Si seleccionaste "Subir Archivos", asegúrate de haber activado Firebase Storage.');
     }
     setIsUploading(false);
   };
@@ -118,7 +148,7 @@ export default function AdminPanel() {
   const handleDelete = async (collectionName: string, id: string) => {
     try {
       await deleteDoc(doc(db, collectionName, id));
-      showStatus('success', 'Eliminado correctamente (Recuerda borrar el archivo de Storage manual).');
+      showStatus('success', 'Eliminado correctamente.');
       fetchData();
     } catch (error) {
       console.error(error);
@@ -131,18 +161,34 @@ export default function AdminPanel() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-bento-text">Panel de Administrador</h1>
         
-        {statusMessage && (
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold ${
-            statusMessage.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
-            : 'bg-green-500/10 text-green-500 border border-green-500/20'
-          }`}>
-            {statusMessage.type === 'error' ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-            {statusMessage.text}
-          </div>
-        )}
+        <div className="flex items-center gap-2 bg-bento-panel border border-bento-border p-1 rounded-lg">
+          <button 
+            onClick={() => setUploadMode('url')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${uploadMode === 'url' ? 'bg-bento-accent text-bento-bg' : 'text-bento-dim hover:text-bento-text'}`}
+          >
+            <LinkIcon className="w-4 h-4" /> Enlaces (100% Funcional)
+          </button>
+          <button 
+            onClick={() => setUploadMode('file')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${uploadMode === 'file' ? 'bg-bento-accent text-bento-bg' : 'text-bento-dim hover:text-bento-text'}`}
+          >
+            <FileUp className="w-4 h-4" /> Subir Archivos MP3
+          </button>
+        </div>
       </div>
+
+      {statusMessage && (
+        <div className={`flex items-center gap-2 px-4 py-3 rounded-md text-sm font-bold shadow-lg ${
+          statusMessage.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/30' 
+          : 'bg-green-500/10 text-green-500 border border-green-500/30'
+        }`}>
+          {statusMessage.type === 'error' ? <AlertCircle className="w-5 h-5 shrink-0" /> : <CheckCircle2 className="w-5 h-5 shrink-0" />}
+          {statusMessage.text}
+        </div>
+      )}
       
       <div className="grid md:grid-cols-2 gap-6">
+        {/* ADD GENRE SECTION */}
         <section className="bg-bento-panel rounded-xl border border-bento-border overflow-hidden flex flex-col">
           <div className="p-4 text-[13px] font-bold uppercase tracking-wider text-bento-dim border-b border-bento-border">
             Agregar Género
@@ -153,18 +199,28 @@ export default function AdminPanel() {
               
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-bento-dim">Imagen del Género (Opcional):</label>
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  ref={genreImageInputRef}
-                  onChange={(e) => setGenreImageFile(e.target.files?.[0] || null)}
-                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:opacity-80 transition-opacity"
-                  disabled={isUploading}
-                />
+                {uploadMode === 'url' ? (
+                  <input 
+                    placeholder="Pega aquí el enlace de la imagen (ej: https://...jpg)" 
+                    className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" 
+                    value={newGenre.imageUrl} 
+                    onChange={e => setNewGenre({...newGenre, imageUrl: e.target.value})} 
+                    disabled={isUploading} 
+                  />
+                ) : (
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    ref={genreImageInputRef}
+                    onChange={(e) => setGenreImageFile(e.target.files?.[0] || null)}
+                    className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:opacity-80 transition-opacity"
+                    disabled={isUploading}
+                  />
+                )}
               </div>
 
               <button type="submit" disabled={isUploading} className="flex items-center justify-center gap-2 bg-bento-accent text-bento-bg font-semibold text-sm px-4 py-2 rounded-md hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 mt-2">
-                {isUploading ? 'Subiendo...' : <><Upload className="w-4 h-4" /> Agregar Género</>}
+                {isUploading ? 'Procesando...' : <><Upload className="w-4 h-4" /> Agregar Género</>}
               </button>
             </form>
 
@@ -184,6 +240,7 @@ export default function AdminPanel() {
           </div>
         </section>
 
+        {/* ADD SONG SECTION */}
         <section className="bg-bento-panel rounded-xl border border-bento-border overflow-hidden flex flex-col">
           <div className="p-4 text-[13px] font-bold uppercase tracking-wider text-bento-dim border-b border-bento-border">
             Agregar Canción
@@ -207,32 +264,53 @@ export default function AdminPanel() {
               </div>
 
               <div className="p-3 border border-dashed border-bento-accent/50 rounded-lg bg-bento-accent/5 flex flex-col gap-2 relative">
-                <label className="text-xs font-bold text-bento-accent">Archivo MP3 (Requerido):</label>
-                <input 
-                  required
-                  type="file" 
-                  accept="audio/*"
-                  ref={songFileInputRef}
-                  onChange={(e) => setSongFile(e.target.files?.[0] || null)}
-                  className="text-bento-dim text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:opacity-80 transition-opacity"
-                  disabled={isUploading}
-                />
+                <label className="text-xs font-bold text-bento-accent">Audio MP3 de la canción (Requerido):</label>
+                {uploadMode === 'url' ? (
+                  <input 
+                    required={uploadMode === 'url'}
+                    placeholder="Pega el enlace directo al audio (ej: https://...mp3)" 
+                    className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" 
+                    value={newSong.musicUrl} 
+                    onChange={e => setNewSong({...newSong, musicUrl: e.target.value})} 
+                    disabled={isUploading} 
+                  />
+                ) : (
+                  <input 
+                    required={uploadMode === 'file'}
+                    type="file" 
+                    accept="audio/*"
+                    ref={songFileInputRef}
+                    onChange={(e) => setSongFile(e.target.files?.[0] || null)}
+                    className="text-bento-dim text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-accent file:text-bento-bg hover:file:opacity-80 transition-opacity"
+                    disabled={isUploading}
+                  />
+                )}
               </div>
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-bento-dim">Imagen de Portada (Opcional):</label>
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  ref={songImageInputRef}
-                  onChange={(e) => setSongImageFile(e.target.files?.[0] || null)}
-                  className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-text file:text-bento-bg hover:file:opacity-80 transition-opacity"
-                  disabled={isUploading}
-                />
+                {uploadMode === 'url' ? (
+                  <input 
+                    placeholder="Pega el enlace de la imagen (ej: https://...jpg)" 
+                    className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" 
+                    value={newSong.imageUrl} 
+                    onChange={e => setNewSong({...newSong, imageUrl: e.target.value})} 
+                    disabled={isUploading} 
+                  />
+                ) : (
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    ref={songImageInputRef}
+                    onChange={(e) => setSongImageFile(e.target.files?.[0] || null)}
+                    className="bg-bento-bg border border-bento-border text-bento-dim px-4 py-1.5 rounded-md text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-bento-text file:text-bento-bg hover:file:opacity-80 transition-opacity"
+                    disabled={isUploading}
+                  />
+                )}
               </div>
 
               <button type="submit" disabled={isUploading} className="flex items-center justify-center gap-2 bg-bento-accent text-bento-bg font-semibold text-sm px-4 py-2 rounded-md hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 mt-2">
-                {isUploading ? 'Subiendo Archivos...' : <><Upload className="w-4 h-4" /> Agregar Canción</>}
+                {isUploading ? 'Procesando...' : <><Upload className="w-4 h-4" /> Agregar Canción</>}
               </button>
             </form>
 
