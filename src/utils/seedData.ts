@@ -142,7 +142,7 @@ export async function seedDatabase() {
         const songObj = data.songs[j];
         
         // Search iTunes API for previewUrl and real High Quality Artwork
-        let previewUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        let audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
         let imageUrl = data.genre.imageUrl;
         let realDuration = songObj.duration;
 
@@ -152,7 +152,7 @@ export async function seedDatabase() {
            const result = await response.json();
            if (result.results && result.results.length > 0) {
               const track = result.results[0];
-              if (track.previewUrl) previewUrl = track.previewUrl;
+              if (track.previewUrl) audioUrl = track.previewUrl;
               if (track.artworkUrl100) {
                   // Upgrade 100x100 resolution to 600x600 for HD cover
                   imageUrl = track.artworkUrl100.replace("100x100bb", "600x600bb");
@@ -167,17 +167,13 @@ export async function seedDatabase() {
         } catch (e) {
            console.error("iTunes API error:", e);
         }
-        
-        // Use the exact song name for the local file path
-        const localMusicPath = `/music/${songObj.name}.mp3`;
 
         await addDoc(collection(db, 'songs'), {
           ...songObj,
           duration: realDuration,
           imageUrl: imageUrl, // Real cover
           genreId,
-          musicUrl: localMusicPath, // Main exact local path
-          previewUrl: previewUrl // Fallback 30-sec preview file
+          musicUrl: audioUrl // Real 30-sec preview file directly from iTunes
         });
       }
     }

@@ -10,7 +10,6 @@ export interface Song {
   album: string;
   musicUrl: string;
   imageUrl?: string;
-  previewUrl?: string;
 }
 
 interface PlayerContextType {
@@ -51,14 +50,15 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (currentSong && audioRef.current) {
       setPlayerError(null);
-      if (audioRef.current.dataset.songId !== currentSong.id) {
-         audioRef.current.dataset.songId = currentSong.id;
-         audioRef.current.dataset.triedFallback = 'false';
+      if (audioRef.current.src !== currentSong.musicUrl) {
          audioRef.current.src = currentSong.musicUrl;
       }
       if (isPlaying) {
         audioRef.current.play().catch(e => {
-          console.error("Playback failed block", e);
+          console.error("Playback failed", e);
+          setIsPlaying(false);
+          setPlayerError("No se pudo iniciar la reproducción. El navegador bloqueó el audio o el enlace es inválido.");
+          setTimeout(() => setPlayerError(null), 8000);
         });
       }
     }
@@ -134,24 +134,9 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
   const handleEnded = () => playNext();
 
   const handleError = (e: any) => {
-    if (audioRef.current && audioRef.current.dataset.triedFallback === 'false' && currentSong?.previewUrl) {
-       console.log("Local music file not found, falling back to iTunes preview...");
-       audioRef.current.dataset.triedFallback = 'true';
-       audioRef.current.src = currentSong.previewUrl;
-       if (isPlaying) {
-         audioRef.current.play().catch(err => {
-            console.error("Fallback playback failed", err);
-            setIsPlaying(false);
-            setPlayerError("Error reproducir el audio.");
-            setTimeout(() => setPlayerError(null), 8000);
-         });
-       }
-       return;
-    }
-
     console.error("Audio Load Error:", e);
     setIsPlaying(false);
-    setPlayerError("Archivo no encontrado. Asegúrate de haberlo subido a tu carpeta /music o verifica el enlace.");
+    setPlayerError("El enlace de audio no funcionó. Asegúrate de que sea un enlace directo a un archivo MP3 y que el servidor permita su reproducción.");
     setTimeout(() => setPlayerError(null), 8000);
   };
 
