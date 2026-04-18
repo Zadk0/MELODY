@@ -3,123 +3,83 @@ import { db } from '../lib/firebase';
 
 const GENRES_WITH_SONGS = [
   {
-    genre: { name: 'Mariachi', imageUrl: 'https://images.unsplash.com/photo-1520690022415-38b43bd0e0ff?w=500&q=80' },
+    genre: { name: 'Reggaetón', imageUrl: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&q=80' },
     songs: [
-      { name: 'El Son de la Negra', artist: 'Mariachi Vargas de Tecalitlán', duration: '2:50', album: 'El Mejor Mariachi del Mundo', releaseDate: '1940-01-01' },
-      { name: 'México Lindo y Querido', artist: 'Jorge Negrete', duration: '3:05', album: 'Fiesta Mexicana', releaseDate: '1948-01-01' },
-      { name: 'El Rey', artist: 'Vicente Fernández', duration: '2:29', album: 'El Hijo del Pueblo', releaseDate: '1974-01-01' },
-      { name: 'La Bikina', artist: 'Luis Miguel', duration: '2:58', album: 'Vivo', releaseDate: '2000-01-01' },
-      { name: 'Cielito Lindo', artist: 'Pedro Infante', duration: '2:35', album: 'La Voz de México', releaseDate: '1945-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Banda Sinaloense', imageUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=500&q=80' },
-    songs: [
-      { name: 'El Sinaloense', artist: 'Banda El Recodo', duration: '2:45', album: 'Banda El Recodo de Cruz Lizárraga', releaseDate: '1958-01-01' },
-      { name: 'Mi Gusto Es', artist: 'Antonio Aguilar', duration: '2:52', album: 'Mi Gusto Es', releaseDate: '1968-01-01' },
-      { name: 'El Muchacho Alegre', artist: 'Francisco "El Gallo" Elizalde', duration: '2:40', album: 'El Muchacho Alegre', releaseDate: '2004-01-01' },
-      { name: 'Me Gusta Todo De Ti', artist: 'Banda El Recodo', duration: '3:02', album: 'Me Gusta Todo De Ti', releaseDate: '2009-01-01' },
-      { name: 'Te Hubieras Ido Antes', artist: 'Julión Álvarez', duration: '3:34', album: 'Soy Lo Que Quiero: Indispensable', releaseDate: '2013-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Norteño', imageUrl: 'https://images.unsplash.com/photo-1508532566027-b2032cd8ecde?w=500&q=80' },
-    songs: [
-      { name: 'La Puerta Negra', artist: 'Los Tigres del Norte', duration: '3:24', album: 'Gracias! América... Sin Fronteras', releaseDate: '1986-01-01' },
-      { name: 'Tragos Amargos', artist: 'Ramón Ayala', duration: '2:50', album: 'Tragos Amargos', releaseDate: '1980-01-01' },
-      { name: 'Mi Casa Nueva', artist: 'Los Invasores de Nuevo León', duration: '2:45', album: 'Mi Casa Nueva', releaseDate: '1985-01-01' },
-      { name: 'Eslabón por Eslabón', artist: 'Lalo Mora', duration: '2:55', album: 'Mis 20 Mejores Canciones', releaseDate: '1993-01-01' },
-      { name: 'Laurita Garza', artist: 'Los Invasores de Nuevo León', duration: '3:15', album: 'Laurita Garza', releaseDate: '1981-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Ranchera', imageUrl: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80' },
-    songs: [
-      { name: 'Volver, Volver', artist: 'Vicente Fernández', duration: '2:57', album: '¡Arriba Huentitán!', releaseDate: '1972-01-01' },
-      { name: 'Paloma Negra', artist: 'Chavela Vargas', duration: '3:25', album: 'Chavela Vargas', releaseDate: '1961-01-01' },
-      { name: 'Cucurrucucú Paloma', artist: 'Lola Beltrán', duration: '3:45', album: 'La Grande', releaseDate: '1954-01-01' },
-      { name: 'Fallaste Corazón', artist: 'Cuco Sánchez', duration: '3:05', album: 'Fallaste Corazón', releaseDate: '1955-01-01' },
-      { name: 'Amanecí en Tus Brazos', artist: 'José Alfredo Jiménez', duration: '2:30', album: 'La Voz de México', releaseDate: '1954-01-01' }
+      { name: 'Tití Me Preguntó', artist: 'Bad Bunny', duration: '4:03', album: 'Un Verano Sin Ti', releaseDate: '2022-05-06' },
+      { name: 'La Jeepeta', artist: 'Nio Garcia', duration: '5:45', album: 'Now or Never', releaseDate: '2020-04-24' },
+      { name: 'Bichota', artist: 'Karol G', duration: '2:58', album: 'KG0516', releaseDate: '2020-10-23' }
     ]
   },
   {
     genre: { name: 'Corridos Tumbados', imageUrl: 'https://images.unsplash.com/photo-1588032786045-59cef3952219?w=500&q=80' },
     songs: [
-      { name: 'Ella Baila Sola', artist: 'Eslabón Armado & Peso Pluma', duration: '2:45', album: 'Desvelado', releaseDate: '2023-01-01' },
-      { name: 'AMG', artist: 'Natanael Cano, Peso Pluma & Gabito Ballesteros', duration: '2:32', album: 'Nata Montana', releaseDate: '2022-01-01' },
-      { name: 'Soy El Diablo', artist: 'Natanael Cano', duration: '3:11', album: 'Todo Es Diferente', releaseDate: '2019-01-01' },
-      { name: 'Ch y la Pizza', artist: 'Fuerza Regida & Natanael Cano', duration: '2:16', album: 'Pa Que Hablen', releaseDate: '2022-01-01' },
-      { name: 'Lady Gaga', artist: 'Peso Pluma, Gabito Ballesteros & Junior H', duration: '3:32', album: 'GÉNESIS', releaseDate: '2023-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Huapango / Son Huasteco', imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&q=80' },
-    songs: [
-      { name: 'La Malagueña', artist: 'Miguel Aceves Mejía', duration: '3:15', album: 'El Rey del Falsete', releaseDate: '1947-01-01' },
-      { name: 'El Querreque', artist: 'Trío Huasteco', duration: '3:20', album: 'Antología del Son', releaseDate: '1960-01-01' },
-      { name: 'La Cigarra', artist: 'Aida Cuevas', duration: '3:40', album: 'La Voz de México', releaseDate: '1980-01-01' },
-      { name: 'El Pastor', artist: 'Miguel Aceves Mejía', duration: '3:05', album: 'El Pastor (Sencillo)', releaseDate: '1950-01-01' },
-      { name: 'Serenata Huasteca', artist: 'José Alfredo Jiménez', duration: '2:45', album: 'José Alfredo Jiménez Vol. 1', releaseDate: '1953-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Son Jarocho', imageUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80' },
-    songs: [
-      { name: 'La Bamba', artist: 'Ritchie Valens', duration: '2:03', album: 'Ritchie Valens', releaseDate: '1958-01-01' },
-      { name: 'El Cascabel', artist: 'Lorenzo Barcelata', duration: '3:10', album: 'Clásicos del Son', releaseDate: '1944-01-01' },
-      { name: 'La Bruja', artist: 'Tlen Huicani', duration: '4:15', album: 'Arpa Jarocha', releaseDate: '1985-01-01' },
-      { name: 'El Colás', artist: 'Los Cojolites', duration: '3:50', album: 'No Todo Es Silencio', releaseDate: '2008-01-01' },
-      { name: 'Zapateado Jarocho', artist: 'Conjunto Alma Jarocha', duration: '2:55', album: 'México: Son Jarocho', releaseDate: '1965-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Bolero', imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80' },
-    songs: [
-      { name: 'Bésame Mucho', artist: 'Consuelo Velázquez', duration: '3:12', album: 'Éxitos de Oro', releaseDate: '1940-01-01' },
-      { name: 'Sabor a Mí', artist: 'Álvaro Carrillo', duration: '2:55', album: 'Cancionero', releaseDate: '1959-01-01' },
-      { name: 'La Barca', artist: 'Lucho Gatica', duration: '3:08', album: 'Inolvidables', releaseDate: '1957-01-01' },
-      { name: 'Contigo Aprendí', artist: 'Armando Manzanero', duration: '3:05', album: 'A Mi Amor Con Mi Amor', releaseDate: '1967-01-01' },
-      { name: 'Gema', artist: 'Los Dandys', duration: '2:40', album: 'Los Dandys', releaseDate: '1958-01-01' }
-    ]
-  },
-  {
-    genre: { name: 'Rock en Español', imageUrl: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80' },
-    songs: [
-      { name: 'La Célula que Explota', artist: 'Caifanes', duration: '3:33', album: 'El Diablito', releaseDate: '1990-01-01' },
-      { name: 'Eres', artist: 'Café Tacvba', duration: '4:30', album: 'Cuatro Caminos', releaseDate: '2003-01-01' },
-      { name: 'Rayando el Sol', artist: 'Maná', duration: '4:11', album: 'Falta Amor', releaseDate: '1990-01-01' },
-      { name: 'Pachuco', artist: 'Maldita Vecindad', duration: '3:14', album: 'El Circo', releaseDate: '1991-01-01' },
-      { name: 'Gimme the Power', artist: 'Molotov', duration: '4:10', album: '¿Dónde Jugarán las Niñas?', releaseDate: '1997-01-01' }
+      { name: 'PRC', artist: 'Peso Pluma', duration: '3:04', album: 'Génesis', releaseDate: '2023-01-24' },
+      { name: 'AMG', artist: 'Natanael Cano', duration: '2:55', album: 'Nata Montana', releaseDate: '2022-11-24' },
+      { name: 'El Azul', artist: 'Junior H', duration: '3:07', album: 'Single', releaseDate: '2023-02-10' }
     ]
   },
   {
     genre: { name: 'Pop Latino', imageUrl: 'https://images.unsplash.com/photo-1493225457224-cca19771311b?w=500&q=80' },
     songs: [
-      { name: 'Causa y Efecto', artist: 'Paulina Rubio', duration: '3:23', album: 'Gran City Pop', releaseDate: '2009-01-01' },
-      { name: 'Muriendo Lento', artist: 'Moderatto ft. Belinda', duration: '4:12', album: 'Detector de Metal', releaseDate: '2004-01-01' },
-      { name: 'Limón y Sal', artist: 'Julieta Venegas', duration: '3:28', album: 'Limón y Sal', releaseDate: '2006-01-01' },
-      { name: 'Corre!', artist: 'Jesse & Joy', duration: '4:45', album: '¿Con Quién Se Queda El Perro?', releaseDate: '2011-01-01' },
-      { name: 'Hasta la Raíz', artist: 'Natalia Lafourcade', duration: '3:42', album: 'Hasta la Raíz', releaseDate: '2015-01-01' }
+      { name: 'Tacones Rojos', artist: 'Sebastián Yatra', duration: '3:09', album: 'Dharma', releaseDate: '2021-10-21' },
+      { name: 'Todo De Ti', artist: 'Rauw Alejandro', duration: '3:19', album: 'Vice Versa', releaseDate: '2021-05-20' },
+      { name: 'Despacito', artist: 'Luis Fonsi', duration: '3:48', album: 'Vida', releaseDate: '2017-01-12' }
     ]
   },
   {
-    genre: { name: 'Cumbia Mexicana', imageUrl: 'https://images.unsplash.com/photo-1504609774640-5757913cf004?w=500&q=80' },
+    genre: { name: 'Banda', imageUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=500&q=80' },
     songs: [
-      { name: '17 Años', artist: 'Los Ángeles Azules', duration: '2:55', album: 'Una Lluvia de Rosas', releaseDate: '1999-01-01' },
-      { name: 'Cómo Te Voy a Olvidar', artist: 'Los Ángeles Azules', duration: '4:32', album: 'Inolvidables', releaseDate: '1996-01-01' },
-      { name: 'Oye Mujer', artist: 'Raymix', duration: '4:05', album: 'Oye Mujer', releaseDate: '2017-01-01' },
-      { name: 'La Colegiala', artist: 'Margarita La Diosa de la Cumbia', duration: '3:45', album: 'Margarita', releaseDate: '1990-01-01' },
-      { name: 'Cumbia del Garrote', artist: 'Los Kumbia Kings', duration: '3:20', album: '4', releaseDate: '2003-01-01' }
+      { name: 'El Tóxico', artist: 'Grupo Firme', duration: '3:01', album: 'Nos Divertimos', releaseDate: '2020-03-10' },
+      { name: 'A Través del Vaso', artist: 'Banda Los Sebastianes', duration: '3:13', album: 'En Vida', releaseDate: '2018-08-17' },
+      { name: 'Hermosa Experiencia', artist: 'Banda MS', duration: '3:40', album: 'No Me Pidas Perdón', releaseDate: '2013-10-21' }
     ]
   },
   {
-    genre: { name: 'Ska / Rock Mestizo', imageUrl: 'https://images.unsplash.com/photo-1533174000265-e8cf28148b17?w=500&q=80' },
+    genre: { name: 'Norteño', imageUrl: 'https://images.unsplash.com/photo-1508532566027-b2032cd8ecde?w=500&q=80' },
     songs: [
-      { name: 'Kumbala', artist: 'Maldita Vecindad', duration: '4:27', album: 'El Circo', releaseDate: '1991-01-01' },
-      { name: 'Dormir Soñando', artist: 'El Gran Silencio', duration: '3:05', album: 'Libres y Locos', releaseDate: '1998-01-01' },
-      { name: 'Amargo Adiós', artist: 'Inspector', duration: '3:03', album: 'Alma en Fuego', releaseDate: '1999-01-01' },
-      { name: 'Perfume de Gardenias', artist: 'Panteón Rococó', duration: '4:08', album: 'Ni Carne Ni Pescado', releaseDate: '2010-01-01' },
-      { name: 'La Carencia', artist: 'Panteón Rococó', duration: '3:34', album: 'Compañeros Musicales', releaseDate: '2002-01-01' }
+      { name: 'A la Antigüita', artist: 'Calibre 50', duration: '2:46', album: 'Vamos Bien', releaseDate: '2021-02-05' },
+      { name: 'Cabrón y Vago', artist: 'El Fantasma', duration: '3:20', album: 'Single', releaseDate: '2020-07-24' },
+      { name: 'Chale', artist: 'Edén Muñoz', duration: '2:38', album: 'Consejos Gratis', releaseDate: '2022-02-18' }
+    ]
+  },
+  {
+    genre: { name: 'Rock en Español', imageUrl: 'https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&q=80' },
+    songs: [
+      { name: 'De Música Ligera', artist: 'Soda Stereo', duration: '3:32', album: 'Canción Animal', releaseDate: '1990-12-20' },
+      { name: 'Lamento Boliviano', artist: 'Enanitos Verdes', duration: '3:41', album: 'Big Bang', releaseDate: '1994-08-15' },
+      { name: 'Oye Mi Amor', artist: 'Maná', duration: '4:33', album: '¿Dónde Jugarán los Niños?', releaseDate: '1992-10-27' }
+    ]
+  },
+  {
+    genre: { name: 'Cumbia', imageUrl: 'https://images.unsplash.com/photo-1504609774640-5757913cf004?w=500&q=80' },
+    songs: [
+      { name: 'Nunca Es Suficiente', artist: 'Los Ángeles Azules', duration: '4:26', album: 'Esto Sí Es Cumbia', releaseDate: '2018-04-19' },
+      { name: '17 Años', artist: 'Los Ángeles Azules', duration: '3:18', album: 'Entrega de Amor', releaseDate: '1999-01-01' },
+      { name: 'El Listón de tu Pelo', artist: 'Los Ángeles Azules', duration: '3:20', album: 'Una Lluvia De Rosas', releaseDate: '1999-05-18' }
+    ]
+  },
+  {
+    genre: { name: 'Hip-Hop / Rap', imageUrl: 'https://images.unsplash.com/photo-1508973379184-7517410fb0bc?w=500&q=80' },
+    songs: [
+      { name: 'Shorty Party', artist: 'Cartel de Santa', duration: '3:45', album: 'Single', releaseDate: '2023-03-04' },
+      { name: 'Quevedo Bzrp', artist: 'Bizarrap', duration: '3:18', album: 'Single', releaseDate: '2022-07-06' },
+      { name: 'La Jumpa', artist: 'Arcangel', duration: '4:15', album: 'Single', releaseDate: '2022-12-01' }
+    ]
+  },
+  {
+    genre: { name: 'Electrónica', imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80' },
+    songs: [
+      { name: 'Pepas', artist: 'Farruko', duration: '4:47', album: 'La 167', releaseDate: '2021-06-24' },
+      { name: 'La Mamá de la Mamá', artist: 'El Alfa', duration: '3:05', album: 'Single', releaseDate: '2021-04-06' },
+      { name: 'Tijuana Sound Machine', artist: 'Nortec Collective', duration: '4:03', album: 'Tijuana Sound Machine', releaseDate: '2008-05-06' }
+    ]
+  },
+  {
+    genre: { name: 'Mariachi / Ranchera', imageUrl: 'https://images.unsplash.com/photo-1520690022415-38b43bd0e0ff?w=500&q=80' },
+    songs: [
+      { name: 'El Rey', artist: 'Vicente Fernández', duration: '2:55', album: 'Arriba Huentitan', releaseDate: '1972-01-01' },
+      { name: 'Si Nos Dejan', artist: 'José Alfredo Jiménez', duration: '2:42', album: 'Clásicos', releaseDate: '1965-01-01' },
+      { name: 'La Bikina', artist: 'Luis Miguel', duration: '3:26', album: 'Vivo', releaseDate: '2000-09-12' }
     ]
   }
 ];
@@ -167,7 +127,7 @@ export async function seedDatabase() {
         } catch (e) {
            console.error("iTunes API error:", e);
         }
-
+        
         await addDoc(collection(db, 'songs'), {
           ...songObj,
           duration: realDuration,
