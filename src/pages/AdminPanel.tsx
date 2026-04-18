@@ -3,7 +3,8 @@ import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Trash2, Upload, AlertCircle, CheckCircle2, Link as LinkIcon, FileUp } from 'lucide-react';
+import { Trash2, Upload, AlertCircle, CheckCircle2, Link as LinkIcon, FileUp, DatabaseZap } from 'lucide-react';
+import { seedDatabase } from '../utils/seedData';
 
 export default function AdminPanel() {
   const { profile } = useAuth();
@@ -55,6 +56,26 @@ export default function AdminPanel() {
     const fileRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
     await uploadBytes(fileRef, file);
     return await getDownloadURL(fileRef);
+  };
+
+  const handleSeedDatabase = async () => {
+    if (genres.length > 0) {
+       showStatus('error', '❌ Tienes que borrar los géneros actuales primero para poder autocompletar, para evitar duplicados.');
+       return;
+    }
+    
+    if (window.confirm('¿Estás seguro que quieres autocompletar la base de datos con los 10 géneros y 30 canciones populares de México?')) {
+       setIsUploading(true);
+       try {
+         await seedDatabase();
+         showStatus('success', '✅ ¡Magia! Se han agregado 10 géneros y 30 canciones correctamente.');
+         fetchData();
+       } catch (error) {
+         console.error(error);
+         showStatus('error', 'Hubo un error añadiendo los datos, revisa la consola.');
+       }
+       setIsUploading(false);
+    }
   };
 
   const handleAddGenre = async (e: React.FormEvent) => {
@@ -161,7 +182,16 @@ export default function AdminPanel() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-bento-text">Panel de Administrador</h1>
         
-        <div className="flex items-center gap-2 bg-bento-panel border border-bento-border p-1 rounded-lg">
+        <div className="flex flex-wrap items-center gap-2 bg-bento-panel border border-bento-border p-1 rounded-lg">
+          <button 
+            onClick={handleSeedDatabase}
+            disabled={isUploading}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-90 disabled:opacity-50"
+            title="Añadir los géneros y música más populares automáticamente"
+          >
+            <DatabaseZap className="w-4 h-4" /> ¡Autocompletar Top México!
+          </button>
+          <div className="w-px h-6 bg-bento-border mx-1"></div>
           <button 
             onClick={() => setUploadMode('url')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors ${uploadMode === 'url' ? 'bg-bento-accent text-bento-bg' : 'text-bento-dim hover:text-bento-text'}`}
