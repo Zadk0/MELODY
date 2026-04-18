@@ -42,38 +42,6 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Prevent CORS issues automatically by not forcing crossorigin unless needed, 
-    // but some hosts require it. By default, leaving it empty is safer for open links.
-    audioRef.current = new Audio();
-    // audioRef.current.crossOrigin = "anonymous"; // Commented out to prevent strict CORS blocks on HTTP links
-    
-    const audio = audioRef.current;
-    
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleEnded = () => playNext();
-    const handleError = (e: any) => {
-      console.error("Audio Load Error:", e);
-      setIsPlaying(false);
-      setPlayerError("El enlace de audio no funcionó. Asegúrate de que sea un enlace directo a un archivo MP3 y que el servidor permita su reproducción.");
-      setTimeout(() => setPlayerError(null), 8000);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.pause();
-    };
-  }, []);
-
-  useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
@@ -82,7 +50,9 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (currentSong && audioRef.current) {
       setPlayerError(null);
-      audioRef.current.src = currentSong.musicUrl;
+      if (audioRef.current.src !== currentSong.musicUrl) {
+         audioRef.current.src = currentSong.musicUrl;
+      }
       if (isPlaying) {
         audioRef.current.play().catch(e => {
           console.error("Playback failed", e);
@@ -108,9 +78,14 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
   }, [isPlaying]);
 
   const playSong = (song: Song, newQueue?: Song[]) => {
-    setCurrentSong(song);
-    setIsPlaying(true);
-    setPlayerError(null);
+    if (currentSong?.id === song.id) {
+       setIsPlaying(true);
+    } else {
+       setCurrentSong(song);
+       setIsPlaying(true);
+       setPlayerError(null);
+    }
+    
     if (newQueue) {
       setQueue(newQueue);
     }
@@ -148,6 +123,23 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleTimeUpdate = () => {
+    if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) setDuration(audioRef.current.duration);
+  };
+
+  const handleEnded = () => playNext();
+
+  const handleError = (e: any) => {
+    console.error("Audio Load Error:", e);
+    setIsPlaying(false);
+    setPlayerError("El enlace de audio no funcionó. Asegúrate de que sea un enlace directo a un archivo MP3 y que el servidor permita su reproducción.");
+    setTimeout(() => setPlayerError(null), 8000);
+  };
+
   return (
     <PlayerContext.Provider value={{
       currentSong,
@@ -165,6 +157,14 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
       playerError
     }}>
       {children}
+      <audio 
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+        onError={handleError}
+        style={{ display: 'none' }}
+      />
     </PlayerContext.Provider>
   );
 };

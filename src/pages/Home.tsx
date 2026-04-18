@@ -4,6 +4,7 @@ import { db } from '../lib/firebase';
 import { usePlayer, Song } from '../contexts/PlayerContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Play } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Genre {
   id: string;
@@ -63,9 +64,17 @@ export default function Home() {
         </div>
         <div className="p-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
           {genres.map(genre => (
-            <div key={genre.id} className="px-3 py-2.5 rounded-md text-sm flex justify-between cursor-pointer hover:bg-bento-hover transition-colors text-bento-text">
-              <span className="truncate">{genre.name}</span>
-            </div>
+            <Link key={genre.id} to={`/genre/${genre.id}`} className="px-3 py-2.5 rounded-md text-sm cursor-pointer hover:bg-bento-hover transition-colors text-bento-text relative overflow-hidden group">
+              <div className="flex items-center gap-2 relative z-10 w-full">
+                <span className="truncate font-semibold drop-shadow-md">{genre.name}</span>
+              </div>
+              {genre.imageUrl && (
+                <div 
+                  className="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition-opacity bg-cover bg-center"
+                  style={{ backgroundImage: `url(${genre.imageUrl})` }}
+                />
+              )}
+            </Link>
           ))}
         </div>
       </section>

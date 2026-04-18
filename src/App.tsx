@@ -12,6 +12,7 @@ import AdminPanel from './pages/AdminPanel';
 import Search from './pages/Search';
 import Library from './pages/Library';
 import PlaylistDetail from './pages/PlaylistDetail';
+import GenreDetail from './pages/GenreDetail';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="search" element={<Search />} />
               <Route path="library" element={<Library />} />
               <Route path="playlist/:id" element={<PlaylistDetail />} />
+              <Route path="genre/:id" element={<GenreDetail />} />
               <Route path="admin" element={<AdminPanel />} />
             </Route>
           </Routes>
