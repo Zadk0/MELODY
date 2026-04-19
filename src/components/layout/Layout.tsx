@@ -3,6 +3,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import PlayerBar from './PlayerBar';
+import PWAInstallPrompt from './PWAInstallPrompt';
 import { Home, Search, Library } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -11,6 +12,7 @@ export default function Layout() {
 
   return (
     <div className="h-screen flex flex-col bg-bento-bg text-bento-text overflow-hidden font-sans safe-area-padding">
+      <PWAInstallPrompt />
       <Topbar />
       <div className="flex-1 flex overflow-hidden p-2 md:p-3 gap-2 md:gap-3 pb-[140px] md:pb-3">
         <div className="hidden md:flex w-[220px] bg-bento-panel rounded-xl border border-bento-border overflow-hidden flex-col flex-shrink-0">
