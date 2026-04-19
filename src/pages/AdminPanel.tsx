@@ -277,20 +277,20 @@ export default function AdminPanel() {
           </div>
           <div className="p-6 flex flex-col gap-6 flex-1">
             <form onSubmit={handleAddSong} className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input required placeholder="Nombre" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.name} onChange={e => setNewSong({...newSong, name: e.target.value})} disabled={isUploading} />
-                <input required placeholder="Artista" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.artist} onChange={e => setNewSong({...newSong, artist: e.target.value})} disabled={isUploading} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input required placeholder="Nombre" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm w-full" value={newSong.name} onChange={e => setNewSong({...newSong, name: e.target.value})} disabled={isUploading} />
+                <input required placeholder="Artista" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm w-full" value={newSong.artist} onChange={e => setNewSong({...newSong, artist: e.target.value})} disabled={isUploading} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <input required placeholder="Duración (ej. 3:45)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.duration} onChange={e => setNewSong({...newSong, duration: e.target.value})} disabled={isUploading} />
-                <input required type="date" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.releaseDate} onChange={e => setNewSong({...newSong, releaseDate: e.target.value})} disabled={isUploading} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input required placeholder="Duración (ej. 3:45)" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm w-full" value={newSong.duration} onChange={e => setNewSong({...newSong, duration: e.target.value})} disabled={isUploading} />
+                <input required type="date" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm w-full" value={newSong.releaseDate} onChange={e => setNewSong({...newSong, releaseDate: e.target.value})} disabled={isUploading} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <select required className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.genreId} onChange={e => setNewSong({...newSong, genreId: e.target.value})} disabled={isUploading}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <select required className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm w-full" value={newSong.genreId} onChange={e => setNewSong({...newSong, genreId: e.target.value})} disabled={isUploading}>
                   <option value="">Seleccionar Género</option>
                   {genres.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                 </select>
-                <input required placeholder="Álbum" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm" value={newSong.album} onChange={e => setNewSong({...newSong, album: e.target.value})} disabled={isUploading} />
+                <input required placeholder="Álbum" className="bg-bento-bg border border-bento-border text-bento-text px-4 py-2 rounded-md focus:outline-none focus:border-bento-accent text-sm w-full" value={newSong.album} onChange={e => setNewSong({...newSong, album: e.target.value})} disabled={isUploading} />
               </div>
 
               <div className="p-3 border border-dashed border-bento-accent/50 rounded-lg bg-bento-accent/5 flex flex-col gap-2 relative">

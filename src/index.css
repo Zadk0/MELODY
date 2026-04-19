@@ -16,6 +16,26 @@ body {
   background-color: var(--color-bento-bg);
   color: var(--color-bento-text);
   font-family: var(--font-sans);
+  overscroll-behavior-y: none; /* Prevent pull-to-refresh feel on PWA */
+}
+
+.safe-area-padding {
+  padding-top: env(safe-area-inset-top);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-bento-hover);
+  border-radius: 10px;
+}
+
+@media (max-width: 640px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 ::-webkit-scrollbar {
